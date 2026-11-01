@@ -4,13 +4,16 @@
  * ==============================================================================
  * O que é:
  *   Componente da Landing Page principal (`/`), contendo o banner Hero do WingetEasy,
- *   a seção Recursos (FeatureShowcase) e a seção Como Funciona (UpdatePipeline).
+ *   a seção Recursos (FeatureShowcase), a seção Como Funciona (UpdatePipeline) e a
+ *   seção Arquitetura (ArchitectureTeaser).
  *
  * O que faz:
  *   - 1. Hero: Banner de impacto com a Pixel Nebula e a ilustração HeroTransform.
  *   - 2. Recursos (#recursos): Showcase com os 6 módulos do app e rotação automática.
  *   - 3. Como funciona (#como-funciona): Divisor com a PixelBand (fita de dados ondulante),
  *        régua temporal de 6 etapas e live trace de console simulado.
+ *   - 4. Arquitetura (#arquitetura): Pixel Nebula (nuvem de pixels) ancorada em bottom-right,
+ *        comparador interativo de consumo de memória RAM (MemoryPixels) e blueprint de camadas.
  *
  * Como alterar caso queira:
  *   - Mudar textos ou descrições: Ajuste as tags `<app-section-header>` correspondentes.
@@ -29,6 +32,7 @@ import { SectionHeaderComponent } from '../../shared/components/section-header/s
 import { HeroTransformComponent } from './components/hero-transform/hero-transform.component';
 import { FeatureShowcaseComponent } from './components/feature-showcase/feature-showcase.component';
 import { UpdatePipelineComponent } from './components/update-pipeline/update-pipeline.component';
+import { ArchitectureTeaserComponent } from './components/architecture-teaser/architecture-teaser.component';
 
 @Component({
   selector: 'app-home',
@@ -43,7 +47,8 @@ import { UpdatePipelineComponent } from './components/update-pipeline/update-pip
     SectionHeaderComponent,
     HeroTransformComponent,
     FeatureShowcaseComponent,
-    UpdatePipelineComponent
+    UpdatePipelineComponent,
+    ArchitectureTeaserComponent
   ],
   template: `
     <!-- ========================================== -->
@@ -151,6 +156,30 @@ import { UpdatePipelineComponent } from './components/update-pipeline/update-pip
 
         <div class="mt-16">
           <app-update-pipeline></app-update-pipeline>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 4. SEÇÃO ARQUITETURA (#arquitetura)        -->
+    <!-- ========================================== -->
+    <section id="arquitetura" class="relative scroll-mt-20 border-t border-border">
+      <!-- Pixel Nebula (nuvem de pixels) ancorada no canto inferior direito -->
+      <app-pixel-nebula
+        anchor="bottom-right"
+        [seed]="21"
+        class="pointer-events-none absolute inset-0 h-full w-full opacity-50 md:opacity-85"
+      ></app-pixel-nebula>
+
+      <div class="relative mx-auto max-w-[1200px] px-5 py-36 md:px-8 md:py-44">
+        <app-section-header
+          eyebrow="Arquitetura"
+          title="Leve por projeto, não por acaso"
+          body="Três camadas, MVVM, SQLite em modo WAL e um cuidado obsessivo com memória. Um único executável que vira app, ícone de bandeja, ferramenta de linha de comando ou worker elevado."
+        ></app-section-header>
+
+        <div class="mt-20">
+          <app-architecture-teaser></app-architecture-teaser>
         </div>
       </div>
     </section>

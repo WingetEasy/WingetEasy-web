@@ -192,3 +192,7 @@
   from { transform: scaleY(0); }
   to { transform: scaleY(1); }
 }
+
+@utility grid-cols-13 {
+  grid-template-columns: repeat(13, minmax(0, 1fr));
+}
