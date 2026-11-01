@@ -9,6 +9,7 @@
  *   - '' -> HomeComponent (Landing Page principal)
  *   - 'arquitetura' -> ArchitectureComponent (Documentação de arquitetura técnica)
  *   - 'documentacao' -> DocumentationComponent (Documentação oficial de ponta a ponta)
+ *   - '**' -> NotFoundComponent (Tela de erro 404 personalizada)
  */
 
 import { Routes } from '@angular/router';
@@ -28,6 +29,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: ''
+    loadComponent: () => import('./features/not-found/not-found.component').then(m => m.NotFoundComponent)
   }
 ];
