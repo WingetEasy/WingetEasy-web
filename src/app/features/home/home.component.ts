@@ -152,7 +152,7 @@ export const FAQ: FaqItem[] = [
         </div>
 
         <!-- Coluna da Direita: Ilustração Interativa Hero Transform -->
-        <div class="flex justify-center lg:justify-end w-full">
+        <div class="flex justify-center lg:justify-end w-full overflow-hidden">
           <app-hero-transform></app-hero-transform>
         </div>
       </div>
