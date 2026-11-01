@@ -1,24 +1,17 @@
 /**
  * ==============================================================================
- * PIPELINE DE ATUALIZAÇÃO (update-pipeline.component.ts)
+ * PIPELINE DE ATUALIZAÇÃO RESPONSIVO (update-pipeline.component.ts)
  * ==============================================================================
  * O que é:
  *   Componente interativo que demonstra o ciclo de vida completo de 6 etapas
  *   executado pelo WingetEasy ao acionar "Atualizar Selecionados".
  *
- * O que faz:
- *   - Exibe a régua superior de etapas (Verificar → Filtrar → Pré-voo → Atualizar → Elevar → Registrar)
- *     com barra de progresso ciano contínua e numeração circular com efeito halo.
- *   - Alterna automaticamente a etapa ativa a cada 2.8 segundos (`2800ms`), pausando quando
- *     o mouse passa sobre o componente (`hover`).
- *   - Permite clicar em qualquer uma das 6 etapas para inspecionar seu momento.
- *   - Na parte inferior, renderiza um trace simulado de console/log destacando em tempo real
- *     a etapa ativa (`border-brand-cyan`, fundo realçado) e atenuando as demais.
- *
- * Como alterar caso queira:
- *   - Mudar a velocidade da rotação: Altere `2800` no `setTimeout(...)`.
- *   - Alterar textos das etapas ou chamadas de serviço: Edite a constante `STEPS`.
- *   - Adicionar ou modificar linhas do console: Edite a constante `LOG`.
+ * Melhorias de Responsividade:
+ *   - Em smartphones e tablets:
+ *     * A régua de etapas se ajusta harmoniosamente em 1 coluna (mobile estreito), 2 ou 3 colunas (tablet).
+ *     * Mantém os números circulares perfeitamente alinhados com o texto.
+ *     * O terminal/trace de saída suporta rolagem horizontal limpa sem estourar o layout da tela.
+ *     * Padding e tipografia otimizados para toque (touch-friendly).
  */
 
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
@@ -63,7 +56,7 @@ export const LOG: Line[] = [
       <!-- ========================================== -->
       <!-- 1. RÉGUA / TRACK DE ETAPAS DO PIPELINE     -->
       <!-- ========================================== -->
-      <ol class="relative grid gap-0 sm:grid-cols-2 lg:grid-cols-6">
+      <ol class="relative grid gap-3 sm:gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 lg:gap-0">
         <!-- Linha de fundo cinza de conexão entre as etapas (Desktop) -->
         <div class="pointer-events-none absolute left-[18px] right-[18px] top-[18px] hidden h-px bg-border lg:block"></div>
 
@@ -78,12 +71,12 @@ export const LOG: Line[] = [
             <button
               type="button"
               (click)="setActive(i)"
-              class="group flex w-full gap-4 py-3 text-left lg:block lg:pr-5 cursor-pointer"
+              class="group flex w-full gap-3.5 sm:gap-4 rounded-xl p-2.5 sm:p-3 text-left transition-colors hover:bg-surface/50 lg:p-0 lg:hover:bg-transparent lg:block lg:pr-5 cursor-pointer"
               [attr.aria-current]="i === active() ? 'step' : undefined"
             >
               <!-- Círculo com o número da etapa -->
               <span
-                class="relative z-10 flex size-9 shrink-0 items-center justify-center rounded-full border font-mono text-[12px] transition-colors"
+                class="relative z-10 flex size-8 sm:size-9 shrink-0 items-center justify-center rounded-full border font-mono text-[11.5px] sm:text-[12px] transition-colors"
                 [class.border-brand-cyan]="i === active()"
                 [class.bg-background]="true"
                 [class.text-brand-cyan]="i === active()"
@@ -98,22 +91,22 @@ export const LOG: Line[] = [
               </span>
 
               <!-- Descrição da etapa -->
-              <span class="block lg:mt-5">
+              <span class="block min-w-0 lg:mt-5">
                 <span
-                  class="block text-lg font-semibold tracking-tight transition-colors"
+                  class="block text-base sm:text-lg font-semibold tracking-tight transition-colors"
                   [class.text-foreground]="i === active()"
                   [class.text-subtle]="i !== active()"
                 >
                   {{ s.title }}
                 </span>
                 <span
-                  class="mt-1 block font-mono text-[11.5px] transition-colors"
+                  class="mt-0.5 sm:mt-1 block font-mono text-[11px] sm:text-[11.5px] transition-colors truncate"
                   [class.text-brand-cyan]="i === active()"
                   [class.text-muted-foreground]="i !== active()"
                 >
                   {{ s.call }}
                 </span>
-                <span class="mt-2 block text-[14px] leading-relaxed text-muted-foreground">{{ s.body }}</span>
+                <span class="mt-1 sm:mt-2 block text-xs sm:text-[14px] leading-relaxed text-muted-foreground">{{ s.body }}</span>
               </span>
             </button>
           </li>
@@ -123,30 +116,30 @@ export const LOG: Line[] = [
       <!-- ========================================== -->
       <!-- 2. LIVE TRACE / CONSOLE DE LOG DA OPERAÇÃO -->
       <!-- ========================================== -->
-      <div class="mt-12 overflow-hidden rounded-2xl border border-border bg-surface shadow-card">
+      <div class="mt-8 sm:mt-12 overflow-hidden rounded-2xl border border-border bg-surface shadow-card">
         <!-- Barra de título do trace -->
-        <div class="flex items-center gap-3 border-b border-border px-5 py-3 font-mono text-[12px] text-subtle">
-          <span class="flex gap-1.5">
-            <span class="size-2.5 rounded-full bg-border"></span>
-            <span class="size-2.5 rounded-full bg-border"></span>
-            <span class="size-2.5 rounded-full bg-border"></span>
+        <div class="flex items-center gap-2 sm:gap-3 border-b border-border px-3.5 sm:px-5 py-2.5 sm:py-3 font-mono text-[11px] sm:text-[12px] text-subtle">
+          <span class="flex gap-1.5 shrink-0">
+            <span class="size-2 sm:size-2.5 rounded-full bg-border"></span>
+            <span class="size-2 sm:size-2.5 rounded-full bg-border"></span>
+            <span class="size-2 sm:size-2.5 rounded-full bg-border"></span>
           </span>
-          trace · Atualizar Selecionados (5)
-          <span class="ml-auto text-muted-foreground">
+          <span class="truncate">trace · Atualizar Selecionados</span>
+          <span class="ml-auto text-muted-foreground text-[10.5px] sm:text-[12px] shrink-0">
             etapa {{ active() + 1 }}/{{ steps.length }} · {{ steps[active()]?.title?.toLowerCase() }}
           </span>
         </div>
 
-        <!-- Terminal de saída em tempo real -->
-        <pre class="overflow-x-auto px-5 py-5 font-mono text-[12.5px] leading-[1.9]"><code>@for (l of log; track $index) {<div
-  class="-mx-5 border-l-2 px-5 transition-all duration-500"
+        <!-- Terminal de saída em tempo real com rolagem suave -->
+        <pre class="overflow-x-auto px-4 py-4 sm:px-5 sm:py-5 font-mono text-[11px] sm:text-[12.5px] leading-[1.8] sm:leading-[1.9]"><code>@for (l of log; track $index) {<div
+  class="-mx-4 sm:-mx-5 border-l-2 px-4 sm:px-5 transition-all duration-500"
   [class.border-brand-cyan]="l.step === active()"
   [class.bg-surface-raised/60]="l.step === active()"
   [class.opacity-100]="l.step === active()"
   [class.border-transparent]="l.step !== active()"
   [class.opacity-60]="l.step < active()"
   [class.opacity-20]="l.step > active()"
-><span class="mr-3 inline-block w-[6.5rem] text-muted-foreground">[{{ steps[l.step]?.title?.toLowerCase() }}]</span>@if (l.kind === 'cmd') {<span class="text-muted-foreground">› </span>}<span [class]="getKindClass(l.kind)">{{ l.text }}</span></div>}</code></pre>
+><span class="mr-2 sm:mr-3 inline-block w-[5.5rem] sm:w-[6.5rem] text-muted-foreground">[{{ steps[l.step]?.title?.toLowerCase() }}]</span>@if (l.kind === 'cmd') {<span class="text-muted-foreground">› </span>}<span [class]="getKindClass(l.kind)">{{ l.text }}</span></div>}</code></pre>
       </div>
     </div>
   `
@@ -216,4 +209,3 @@ export class UpdatePipelineComponent implements OnInit, OnDestroy {
     }
   }
 }
-

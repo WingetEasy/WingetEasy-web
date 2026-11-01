@@ -9,12 +9,15 @@
  *   - Header e Footer integrados.
  *   - Banner com PixelNebula, eyebrow, título grande, descrição e grid de estatísticas (stats).
  *   - Fita de dados divisora (PixelBand).
- *   - Sidebar esquerda com menu de índice ("Nesta página" / TOC) com detecção de scroll.
+ *   - Sidebar esquerda com menu de índice ("Nesta página" / TOC) com detecção de scroll no desktop.
+ *   - NOVO: Menu suspenso / gaveta "Nesta página" compacta para dispositivos móveis e tablets,
+ *     permitindo que o usuário no celular ou tablet selecione e pule rapidamente para qualquer seção.
  *   - Componentes utilitários exportados: DocSection, CodeBlock, DataTable, Bullets, SpecGrid e C.
  */
 
 import { Component, input, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule, ChevronDown, ListFilter } from 'lucide-angular';
 import { PixelNebulaComponent } from '../../canvas/pixel-nebula/pixel-nebula.component';
 import { PixelBandComponent } from '../../canvas/pixel-band/pixel-band.component';
 import { SiteCtaComponent } from '../../../layout/site-cta/site-cta.component';
@@ -28,6 +31,7 @@ export type StatItem = { value: string; label: string };
   standalone: true,
   imports: [
     CommonModule,
+    LucideAngularModule,
     PixelNebulaComponent,
     PixelBandComponent,
     SiteCtaComponent,
@@ -42,23 +46,23 @@ export type StatItem = { value: string; label: string };
             <app-pixel-nebula class="animate-fade h-full w-full"></app-pixel-nebula>
           </div>
 
-          <div class="relative mx-auto max-w-[1200px] px-5 pb-16 pt-20 md:px-8 md:pb-20 md:pt-28">
+          <div class="relative mx-auto max-w-[1200px] px-5 pb-12 pt-12 sm:pb-16 sm:pt-20 md:px-8 md:pb-20 md:pt-28">
             <p class="animate-rise font-mono text-[12px] uppercase tracking-[0.18em] text-brand-cyan">
               {{ eyebrow() }}
             </p>
-            <h1 class="animate-rise mt-4 max-w-3xl text-5xl font-semibold leading-[1.02] tracking-display md:text-[3.6rem]">
+            <h1 class="animate-rise mt-4 max-w-3xl text-3xl font-semibold leading-[1.08] tracking-display sm:text-5xl md:text-[3.6rem]">
               {{ title() }}
             </h1>
-            <p class="animate-rise mt-6 max-w-2xl text-xl leading-[1.55] text-subtle">
+            <p class="animate-rise mt-4 sm:mt-6 max-w-2xl text-base sm:text-xl leading-[1.55] text-subtle">
               {{ description() }}
             </p>
 
             @if (stats() && stats()!.length > 0) {
-              <dl class="animate-rise mt-12 grid max-w-3xl grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-4">
+              <dl class="animate-rise mt-8 sm:mt-12 grid max-w-3xl grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-4">
                 @for (s of stats()!; track s.label) {
-                  <div class="bg-background/90 px-5 py-4 backdrop-blur">
-                    <dt class="text-sm text-muted-foreground">{{ s.label }}</dt>
-                    <dd class="mt-1 text-2xl font-semibold tracking-tight">{{ s.value }}</dd>
+                  <div class="bg-background/90 p-4 sm:px-5 sm:py-4 backdrop-blur">
+                    <dt class="text-xs sm:text-sm text-muted-foreground">{{ s.label }}</dt>
+                    <dd class="mt-1 text-xl sm:text-2xl font-semibold tracking-tight">{{ s.value }}</dd>
                   </div>
                 }
               </dl>
@@ -68,11 +72,57 @@ export type StatItem = { value: string; label: string };
 
         <!-- Divisor animado PixelBand -->
         <div aria-hidden="true" class="border-y border-border">
-          <app-pixel-band [seed]="5" class="block h-16 w-full"></app-pixel-band>
+          <app-pixel-band [seed]="5" class="block h-12 sm:h-16 w-full"></app-pixel-band>
         </div>
 
-        <!-- Conteúdo Principal: Sidebar de Navegação TOC + Artigos -->
-        <div class="mx-auto grid max-w-[1200px] gap-12 px-5 py-16 md:px-8 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-16 lg:py-20">
+        <!-- Menu Flutuante / Compacto "Nesta Página" para Telas Menores (Smartphones & Tablets < lg) -->
+        <div class="sticky top-16 z-30 border-b border-border bg-background/95 px-5 py-3 backdrop-blur-md lg:hidden">
+          <div class="mx-auto flex max-w-[1200px] items-center justify-between">
+            <button
+              type="button"
+              (click)="mobileTocOpen.update(v => !v)"
+              class="flex w-full items-center justify-between rounded-xl border border-border bg-surface px-4 py-2.5 text-xs font-mono uppercase tracking-[0.12em] text-subtle hover:text-foreground hover:border-input transition-colors cursor-pointer"
+            >
+              <span class="flex items-center gap-2 truncate">
+                <lucide-icon [img]="ListIcon" class="size-3.5 text-brand-cyan"></lucide-icon>
+                <span class="text-muted-foreground">Índice:</span>
+                <span class="text-foreground font-semibold truncate">{{ currentActiveLabel() }}</span>
+              </span>
+              <lucide-icon
+                [img]="ChevronIcon"
+                class="size-4 shrink-0 transition-transform duration-200"
+                [class.rotate-180]="mobileTocOpen()"
+              ></lucide-icon>
+            </button>
+          </div>
+
+          <!-- Drawer suspenso com todos os tópicos no Mobile -->
+          @if (mobileTocOpen()) {
+            <div class="mt-2 max-h-[60vh] overflow-y-auto rounded-xl border border-border bg-surface p-3 shadow-2xl animate-fade">
+              <ul class="space-y-1">
+                @for (t of toc(); track t.id) {
+                  <li>
+                    <a
+                      [href]="'#' + t.id"
+                      (click)="mobileTocOpen.set(false)"
+                      class="block rounded-lg px-3 py-2 text-sm transition-colors"
+                      [class.bg-surface-raised]="activeId() === t.id"
+                      [class.text-brand-cyan]="activeId() === t.id"
+                      [class.font-semibold]="activeId() === t.id"
+                      [class.text-subtle]="activeId() !== t.id"
+                    >
+                      <span class="mr-2 text-xs font-mono text-muted-foreground">{{ t.group }} ›</span>
+                      {{ t.label }}
+                    </a>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+
+        <!-- Conteúdo Principal: Sidebar de Navegação TOC Desktop + Artigos -->
+        <div class="mx-auto grid max-w-[1200px] gap-8 px-5 py-10 sm:py-16 md:px-8 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-16 lg:py-20">
           <!-- Sidebar Desktop TOC -->
           <aside class="hidden lg:block">
             <nav class="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pb-8 text-sm" aria-label="Nesta página">
@@ -103,7 +153,7 @@ export type StatItem = { value: string; label: string };
           </aside>
 
           <!-- Corpo do Artigo -->
-          <article class="min-w-0 space-y-24">
+          <article class="min-w-0 space-y-16 sm:space-y-24">
             <ng-content></ng-content>
           </article>
         </div>
@@ -122,7 +172,17 @@ export class DocsLayoutComponent implements OnInit, OnDestroy {
   toc = input.required<TocItem[]>();
 
   activeId = signal<string>('');
+  mobileTocOpen = signal<boolean>(false);
+
+  readonly ListIcon = ListFilter;
+  readonly ChevronIcon = ChevronDown;
+
   private observer?: IntersectionObserver;
+
+  currentActiveLabel = () => {
+    const item = this.toc().find(t => t.id === this.activeId());
+    return item ? item.label : 'Selecione uma seção';
+  };
 
   ngOnInit() {
     if (this.toc().length > 0) {
@@ -172,13 +232,13 @@ export class DocsLayoutComponent implements OnInit, OnDestroy {
   selector: 'app-doc-section',
   standalone: true,
   template: `
-    <section [id]="id()" class="scroll-mt-24">
+    <section [id]="id()" class="scroll-mt-28">
       <p class="font-mono text-[12px] text-muted-foreground">{{ index() }}</p>
-      <h2 class="mt-2 text-3xl font-semibold leading-tight tracking-display md:text-4xl">{{ title() }}</h2>
+      <h2 class="mt-2 text-2xl font-semibold leading-tight tracking-display sm:text-3xl md:text-4xl">{{ title() }}</h2>
       @if (lead()) {
-        <p class="mt-4 max-w-3xl text-lg leading-relaxed text-subtle">{{ lead() }}</p>
+        <p class="mt-3 sm:mt-4 max-w-3xl text-base sm:text-lg leading-relaxed text-subtle">{{ lead() }}</p>
       }
-      <div class="mt-8 space-y-6">
+      <div class="mt-6 sm:mt-8 space-y-6">
         <ng-content></ng-content>
       </div>
     </section>
@@ -208,7 +268,7 @@ export class CComponent {}
   template: `
     <div class="overflow-hidden rounded-2xl border border-border bg-surface shadow-card my-6">
       <div class="border-b border-border px-4 py-2.5 font-mono text-[12px] text-subtle">{{ label() }}</div>
-      <pre class="overflow-x-auto px-5 py-4 font-mono text-[13px] leading-6 text-subtle"><code>{{ code() }}</code></pre>
+      <pre class="overflow-x-auto px-4 py-3.5 sm:px-5 sm:py-4 font-mono text-[12px] sm:text-[13px] leading-6 text-subtle"><code>{{ code() }}</code></pre>
     </div>
   `
 })
@@ -224,11 +284,11 @@ export class CodeBlockComponent {
   imports: [CommonModule],
   template: `
     <div class="overflow-x-auto rounded-2xl border border-border my-6">
-      <table class="w-full min-w-[560px] text-left text-[14.5px]">
+      <table class="w-full min-w-[500px] text-left text-[14px] sm:text-[14.5px]">
         <thead class="bg-surface">
           <tr>
             @for (h of head(); track h) {
-              <th class="border-b border-border px-4 py-3 font-mono text-[11.5px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+              <th class="border-b border-border px-3.5 py-3 font-mono text-[11px] sm:text-[11.5px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
                 {{ h }}
               </th>
             }
@@ -239,9 +299,10 @@ export class CodeBlockComponent {
             <tr class="align-top transition-colors hover:bg-surface/60">
               @for (cell of row; track $index; let colIdx = $index) {
                 <td
-                  class="px-4 py-3 leading-relaxed"
+                  class="px-3.5 py-3 leading-relaxed"
                   [class.font-mono]="isMono(colIdx)"
-                  [class.text-[13px]]="isMono(colIdx)"
+                  [class.text-[12.5px]]="isMono(colIdx)"
+                  [class.sm:text-[13px]]="isMono(colIdx)"
                   [class.text-foreground]="isMono(colIdx)"
                   [class.text-subtle]="!isMono(colIdx)"
                 >
@@ -273,14 +334,14 @@ export class DataTableComponent {
   template: `
     <div class="grid gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-2 my-6">
       @for (it of items(); track it.title) {
-        <div class="bg-background p-6">
+        <div class="bg-background p-5 sm:p-6">
           <div class="flex items-baseline justify-between gap-3">
-            <h3 class="text-lg font-semibold tracking-tight">{{ it.title }}</h3>
+            <h3 class="text-base sm:text-lg font-semibold tracking-tight">{{ it.title }}</h3>
             @if (it.tag) {
-              <span class="font-mono text-[11.5px] text-muted-foreground">{{ it.tag }}</span>
+              <span class="font-mono text-[11px] sm:text-[11.5px] text-muted-foreground">{{ it.tag }}</span>
             }
           </div>
-          <div class="mt-2 leading-relaxed text-subtle">{{ it.body }}</div>
+          <div class="mt-2 text-sm sm:text-base leading-relaxed text-subtle">{{ it.body }}</div>
         </div>
       }
     </div>
@@ -289,4 +350,3 @@ export class DataTableComponent {
 export class SpecGridComponent {
   items = input.required<{ title: string; tag?: string; body: string }[]>();
 }
-

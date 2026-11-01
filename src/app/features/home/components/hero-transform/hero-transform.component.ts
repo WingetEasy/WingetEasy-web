@@ -7,18 +7,12 @@
  *   transformar o processo manual de linha de comando no terminal em um fluxo automatizado
  *   e amigável de um clique ("Tudo atualizado").
  *
- * O que faz:
- *   - Simula um ciclo temporal em etapas através de um temporizador a cada 750ms:
- *     1. Linhas do terminal aparecem progressivamente (Before).
- *     2. Um pulso de luz viaja pelo conector central passando pelo ícone do WingetEasy.
- *     3. Os aplicativos (Chrome, VS Code, .NET, PowerToys) são atualizados sequencialmente.
- *     4. O card final exibe "Tudo atualizado" com selo verde de sucesso (After).
- *
- * Como alterar caso queira:
- *   - Mudar velocidade do ciclo: Ajuste o intervalo de `750` no `setInterval(...)`.
- *   - Mudar os comandos/linhas do terminal: Edite o array `TERMINAL`.
- *   - Mudar a lista de siglas dos aplicativos: Edite o array `APPS` (ex: `['Ch', 'VS', 'Git', 'Node']`).
- *   - Alterar textos de status: Edite as mensagens dentro do card "Result: the 'after'".
+ * Ajustes de Responsividade:
+ *   - Em smartphones e tablets:
+ *     * Ajusta largura dos cards (`w-full` em telas pequenas em vez de `w-[88%]`).
+ *     * Reduz a altura do conector em telas móveis (`h-24 sm:h-36`).
+ *     * Permite quebra/wrap natural no card inferior caso a tela seja ultra estreita (320px).
+ *     * Mantém o alinhamento centralizado com `sem terminal`.
  */
 
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
@@ -56,24 +50,24 @@ const TOTAL = T_DONE + 5;             // Pausa no estado final antes de reinicia
       <!-- ========================================== -->
       <!-- 1. TERMINAL: O ESTADO ANTERIOR ("BEFORE")  -->
       <!-- ========================================== -->
-      <div class="mr-auto w-[88%] overflow-hidden rounded-xl border border-border bg-surface/80 shadow-card backdrop-blur">
+      <div class="w-full sm:mr-auto sm:w-[88%] overflow-hidden rounded-xl border border-border bg-surface/80 shadow-card backdrop-blur">
         <!-- Barra de título do PowerShell com botões de janela simulados -->
-        <div class="flex items-center gap-2 border-b border-border px-4 py-2.5">
+        <div class="flex items-center gap-2 border-b border-border px-3.5 sm:px-4 py-2 sm:py-2.5">
           <span class="flex gap-1.5">
             <span class="size-2 rounded-full bg-border"></span>
             <span class="size-2 rounded-full bg-border"></span>
             <span class="size-2 rounded-full bg-border"></span>
           </span>
-          <span class="font-mono text-[11px] text-muted-foreground">PowerShell</span>
+          <span class="font-mono text-[10.5px] sm:text-[11px] text-muted-foreground">PowerShell</span>
         </div>
-        <!-- Conteúdo do comando e saída do terminal (sem barras de rolagem e sem quebras extras) -->
-        <pre class="overflow-hidden px-4 py-3.5 font-mono text-[10.5px] leading-[1.85] text-muted-foreground whitespace-pre">@for (l of terminal; track $index) {<div class="whitespace-pre transition-opacity duration-300" [class.opacity-100]="tick() > $index || finished()" [class.opacity-0]="tick() <= $index && !finished()">@if (l.prompt) {<span>PS&gt; </span><span class="text-foreground">{{ l.text }}</span>} @else {{{ l.text }}}</div>}</pre>
+        <!-- Conteúdo do comando e saída do terminal (overflow-hidden sem barras de rolagem) -->
+        <pre class="overflow-hidden px-3.5 sm:px-4 py-3 sm:py-3.5 font-mono text-[9.5px] sm:text-[10.5px] leading-[1.8] sm:leading-[1.85] text-muted-foreground whitespace-pre">@for (l of terminal; track $index) {<div class="whitespace-pre transition-opacity duration-300" [class.opacity-100]="tick() > $index || finished()" [class.opacity-0]="tick() <= $index && !finished()">@if (l.prompt) {<span>PS&gt; </span><span class="text-foreground">{{ l.text }}</span>} @else {{{ l.text }}}</div>}</pre>
       </div>
 
       <!-- ========================================== -->
       <!-- 2. CONECTOR COM O NÓ CENTRAL (WINGETEASY)  -->
       <!-- ========================================== -->
-      <div class="relative mx-auto flex h-36 w-full items-center justify-center">
+      <div class="relative mx-auto flex h-28 sm:h-36 w-full items-center justify-center">
         <!-- Linha vertical pontilhada -->
         <div class="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 border-l border-dashed border-input"></div>
 
@@ -86,24 +80,24 @@ const TOTAL = T_DONE + 5;             // Pausa no estado final antes de reinicia
 
         <!-- Ícone central com borda brilhante animada -->
         <div
-          class="relative flex size-16 items-center justify-center rounded-2xl border bg-background transition-all duration-500"
+          class="relative flex size-14 sm:size-16 items-center justify-center rounded-2xl border bg-background transition-all duration-500"
           [class.border-brand-cyan/70]="flowing() || updating()"
           [class.shadow-[0_0_0_8px_color-mix(in_oklab,var(--brand-cyan)_12%,transparent),0_0_40px_color-mix(in_oklab,var(--brand-blue)_35%,transparent)]]="flowing() || updating()"
           [class.border-input]="!flowing() && !updating()"
         >
-          <img src="wingeteasy-logo.png" alt="WingetEasy Logo" width="36" height="36" class="size-9 object-contain" />
+          <img src="wingeteasy-logo.png" alt="WingetEasy Logo" width="36" height="36" class="size-8 sm:size-9 object-contain" />
         </div>
-        <span class="absolute left-[calc(50%+3rem)] font-mono text-[11px] text-muted-foreground">sem terminal</span>
+        <span class="absolute left-[calc(50%+2.5rem)] sm:left-[calc(50%+3rem)] font-mono text-[10px] sm:text-[11px] text-muted-foreground whitespace-nowrap">sem terminal</span>
       </div>
 
       <!-- ========================================== -->
       <!-- 3. RESULTADO: A INTERFACE NATIVA ("AFTER") -->
       <!-- ========================================== -->
-      <div class="ml-auto w-[88%] rounded-xl border border-input bg-surface p-5 shadow-card">
-        <div class="flex items-center gap-4">
+      <div class="w-full sm:ml-auto sm:w-[88%] rounded-xl border border-input bg-surface p-4 sm:p-5 shadow-card">
+        <div class="flex items-center gap-3 sm:gap-4">
           <!-- Círculo indicador de status (contador, spinner ou check de conclusão) -->
           <span
-            class="flex size-11 shrink-0 items-center justify-center rounded-full border transition-colors duration-500"
+            class="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-full border transition-colors duration-500"
             [class.border-success/60]="finished()"
             [class.bg-success/15]="finished()"
             [class.text-success]="finished()"
@@ -111,15 +105,15 @@ const TOTAL = T_DONE + 5;             // Pausa no estado final antes de reinicia
             [class.text-muted-foreground]="!finished()"
           >
             @if (finished()) {
-              <lucide-icon [img]="CheckIcon" class="size-5" [strokeWidth]="2.5"></lucide-icon>
+              <lucide-icon [img]="CheckIcon" class="size-4 sm:size-5" [strokeWidth]="2.5"></lucide-icon>
             } @else if (updating()) {
               <span class="size-4 animate-spin rounded-full border-2 border-brand-cyan/25 border-t-brand-cyan"></span>
             } @else {
-              <span class="font-mono text-[15px] font-semibold text-foreground">{{ apps.length }}</span>
+              <span class="font-mono text-[14px] sm:text-[15px] font-semibold text-foreground">{{ apps.length }}</span>
             }
           </span>
           <div class="min-w-0">
-            <p class="text-[19px] font-semibold tracking-tight">
+            <p class="text-base sm:text-[19px] font-semibold tracking-tight truncate">
               @if (finished()) {
                 Tudo atualizado
               } @else if (updating()) {
@@ -128,7 +122,7 @@ const TOTAL = T_DONE + 5;             // Pausa no estado final antes de reinicia
                 {{ apps.length }} atualizações
               }
             </p>
-            <p class="mt-0.5 text-[13px] text-muted-foreground">
+            <p class="mt-0.5 text-xs sm:text-[13px] text-muted-foreground truncate">
               @if (finished()) {
                 Nenhum comando digitado.
               } @else {
@@ -139,10 +133,10 @@ const TOTAL = T_DONE + 5;             // Pausa no estado final antes de reinicia
         </div>
 
         <!-- Grade de ícones dos programas com badges de conclusão -->
-        <div class="mt-5 flex items-center gap-2">
+        <div class="mt-4 sm:mt-5 flex items-center gap-1.5 sm:gap-2">
           @for (a of apps; track a; let i = $index) {
             <span
-              class="relative flex size-10 items-center justify-center rounded-lg border font-mono text-[11.5px] transition-colors duration-500"
+              class="relative flex size-8 sm:size-10 items-center justify-center rounded-lg border font-mono text-[10.5px] sm:text-[11.5px] transition-colors duration-500"
               [class.border-success/40]="i < doneCount()"
               [class.bg-success/10]="i < doneCount()"
               [class.text-foreground]="i < doneCount()"
@@ -152,8 +146,8 @@ const TOTAL = T_DONE + 5;             // Pausa no estado final antes de reinicia
             >
               {{ a }}
               @if (i < doneCount()) {
-                <span class="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-success text-success-foreground">
-                  <lucide-icon [img]="CheckIcon" class="size-2.5" [strokeWidth]="3"></lucide-icon>
+                <span class="absolute -bottom-1 -right-1 flex size-3.5 sm:size-4 items-center justify-center rounded-full bg-success text-success-foreground">
+                  <lucide-icon [img]="CheckIcon" class="size-2 sm:size-2.5" [strokeWidth]="3"></lucide-icon>
                 </span>
               }
             </span>
@@ -161,7 +155,7 @@ const TOTAL = T_DONE + 5;             // Pausa no estado final antes de reinicia
 
           <!-- Botão de ação "Atualizar Tudo" / "Concluído" -->
           <span
-            class="ml-auto rounded-full px-4 py-2 text-[13px] font-medium transition-all duration-300"
+            class="ml-auto rounded-full px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-[13px] font-medium transition-all duration-300"
             [class.border]="finished()"
             [class.border-border]="finished()"
             [class.text-muted-foreground]="finished()"
