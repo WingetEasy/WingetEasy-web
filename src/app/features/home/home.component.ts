@@ -1,24 +1,19 @@
 /**
  * ==============================================================================
- * PÁGINA INICIAL / HERO SECTION (home.component.ts)
+ * PÁGINA INICIAL / LANDING PAGE (home.component.ts)
  * ==============================================================================
  * O que é:
  *   Componente da Landing Page principal (`/`), contendo o banner Hero do WingetEasy,
- *   a nebulosa em pixels no fundo e a ilustração comparativa (terminal vs UI nativa).
+ *   a seção Recursos (FeatureShowcase) e demais seções.
  *
  * O que faz:
- *   - Apresenta o título principal e a proposta de valor do projeto.
- *   - Integra o fundo dinâmico gerado em canvas (`PixelNebulaComponent`).
- *   - Fornece botão de download com link para a seção `#instalar`.
- *   - Oferece botão para copiar com um clique o comando `winget install WingetEasy`.
- *   - Link externo para o repositório open source no GitHub.
- *   - Exibe a animação transformacional `HeroTransformComponent`.
+ *   - Apresenta o banner Hero com o fundo interativo de pixels e o HeroTransform.
+ *   - Seção #recursos: Exibe o showcase interativo dos 6 módulos com rotação automática,
+ *     com poeira de pixels ancorada à direita (`anchor="right"` e `seed={13}`).
  *
  * Como alterar caso queira:
  *   - Mudar os textos principais: Edite as tags `<h1>` e `<p>` no template abaixo.
- *   - Mudar a posição da nebulosa: Ajuste o valor de `top-0` na `div` que envolve o `<app-pixel-nebula>`.
- *   - Mudar a altura do Hero: Ajuste a classe `min-h-[calc(100svh-4rem)]` da seção principal.
- *   - Adicionar novas seções (Features, Pipeline, FAQ, Footer): Basta incluir novos componentes abaixo da `<section>`.
+ *   - Adicionar novas seções (Como funciona, Arquitetura, FAQ, etc.): Inclua novas tags `<section>`.
  */
 
 import { Component } from '@angular/core';
@@ -28,7 +23,9 @@ import { LucideAngularModule, Download, ArrowUpRight } from 'lucide-angular';
 import { SITE } from '../../core/constants/site';
 import { PixelNebulaComponent } from '../../shared/canvas/pixel-nebula/pixel-nebula.component';
 import { CopyButtonComponent } from '../../shared/components/copy-button/copy-button.component';
+import { SectionHeaderComponent } from '../../shared/components/section-header/section-header.component';
 import { HeroTransformComponent } from './components/hero-transform/hero-transform.component';
+import { FeatureShowcaseComponent } from './components/feature-showcase/feature-showcase.component';
 
 @Component({
   selector: 'app-home',
@@ -39,11 +36,13 @@ import { HeroTransformComponent } from './components/hero-transform/hero-transfo
     LucideAngularModule,
     PixelNebulaComponent,
     CopyButtonComponent,
-    HeroTransformComponent
+    SectionHeaderComponent,
+    HeroTransformComponent,
+    FeatureShowcaseComponent
   ],
   template: `
     <!-- ========================================== -->
-    <!-- HERO BANNER PRINCIPAL                       -->
+    <!-- 1. HERO BANNER PRINCIPAL                   -->
     <!-- ========================================== -->
     <section class="relative flex min-h-[calc(100svh-4rem)] items-center">
       <!-- Fundo em Canvas: Nebulosa de Pixels (encostada no Navbar através do top-0) -->
@@ -103,6 +102,30 @@ import { HeroTransformComponent } from './components/hero-transform/hero-transfo
         <!-- Coluna da Direita: Ilustração Interativa Hero Transform -->
         <div class="flex justify-center lg:justify-end">
           <app-hero-transform></app-hero-transform>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 2. SEÇÃO RECURSOS (#recursos)              -->
+    <!-- ========================================== -->
+    <section id="recursos" class="relative scroll-mt-20">
+      <!-- Fundo de poeira de pixels ancorado à direita (mais brilhante) -->
+      <app-pixel-nebula
+        anchor="right"
+        [seed]="13"
+        class="pointer-events-none absolute inset-x-0 top-0 h-[720px] w-full opacity-80 md:opacity-100"
+      ></app-pixel-nebula>
+
+      <div class="relative mx-auto max-w-[1200px] px-5 py-36 md:px-8 md:py-44">
+        <app-section-header
+          eyebrow="Recursos"
+          title="Pronto para o seu dia a dia"
+          body="Seis módulos que cobrem o que o winget sozinho não cobre."
+        ></app-section-header>
+
+        <div class="mt-20">
+          <app-feature-showcase></app-feature-showcase>
         </div>
       </div>
     </section>
