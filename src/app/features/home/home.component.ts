@@ -1,23 +1,17 @@
 /**
  * ==============================================================================
- * PÁGINA INICIAL / LANDING PAGE (home.component.ts)
+ * PÁGINA INICIAL / LANDING PAGE COMPLETA (home.component.ts)
  * ==============================================================================
  * O que é:
- *   Componente da Landing Page principal (`/`), contendo o banner Hero do WingetEasy,
- *   a seção Recursos (FeatureShowcase), a seção Como Funciona (UpdatePipeline) e a
- *   seção Arquitetura (ArchitectureTeaser).
- *
- * O que faz:
- *   - 1. Hero: Banner de impacto com a Pixel Nebula e a ilustração HeroTransform.
- *   - 2. Recursos (#recursos): Showcase com os 6 módulos do app e rotação automática.
- *   - 3. Como funciona (#como-funciona): Divisor com a PixelBand (fita de dados ondulante),
- *        régua temporal de 6 etapas e live trace de console simulado.
- *   - 4. Arquitetura (#arquitetura): Pixel Nebula (nuvem de pixels) ancorada em bottom-right,
- *        comparador interativo de consumo de memória RAM (MemoryPixels) e blueprint de camadas.
- *
- * Como alterar caso queira:
- *   - Mudar textos ou descrições: Ajuste as tags `<app-section-header>` correspondentes.
- *   - Ajustar sementes gráficas do Canvas: Mude o `seed` nos componentes `<app-pixel-nebula>` ou `<app-pixel-band>`.
+ *   Landing Page oficial do WingetEasy com todas as seções integradas:
+ *   1. Hero Banner: Título, CTA, Pixel Nebula e animação HeroTransform
+ *   2. Recursos (#recursos): Showcase com os 6 módulos do app
+ *   3. Como funciona (#como-funciona): Divisor PixelBand, régua de etapas e console trace
+ *   4. Arquitetura (#arquitetura): Pixel Nebula, comparativo de memória RAM e Blueprint
+ *   5. Instalação (#instalacao / #instalar): Comandos winget, releases Velopack, build git e requisitos
+ *   6. FAQ (#faq): Perguntas frequentes com sanfona/accordion nativo
+ *   7. Site CTA: Planeta esférico (PixelPlanet) e fechamento
+ *   8. Site Footer: Rodapé oficial
  */
 
 import { Component } from '@angular/core';
@@ -27,12 +21,48 @@ import { LucideAngularModule, Download, ArrowUpRight } from 'lucide-angular';
 import { SITE } from '../../core/constants/site';
 import { PixelNebulaComponent } from '../../shared/canvas/pixel-nebula/pixel-nebula.component';
 import { PixelBandComponent } from '../../shared/canvas/pixel-band/pixel-band.component';
+import { PixelStarsComponent } from '../../shared/canvas/pixel-stars/pixel-stars.component';
 import { CopyButtonComponent } from '../../shared/components/copy-button/copy-button.component';
 import { SectionHeaderComponent } from '../../shared/components/section-header/section-header.component';
+import { AccordionComponent, FaqItem } from '../../shared/components/accordion/accordion.component';
+import { GithubIconComponent } from '../../shared/components/button/github-icon.component';
 import { HeroTransformComponent } from './components/hero-transform/hero-transform.component';
 import { FeatureShowcaseComponent } from './components/feature-showcase/feature-showcase.component';
 import { UpdatePipelineComponent } from './components/update-pipeline/update-pipeline.component';
 import { ArchitectureTeaserComponent } from './components/architecture-teaser/architecture-teaser.component';
+import { SiteCtaComponent } from '../../layout/site-cta/site-cta.component';
+import { SiteFooterComponent } from '../../layout/site-footer/site-footer.component';
+
+export const REQUIREMENTS = [
+  ['Sistema operacional', 'Windows 10 build 19041 ou superior, Windows 11'],
+  ['Runtime', '.NET 10 e Windows App SDK (WinUI 3)'],
+  ['Gerenciador', 'WinGet via App Installer, atualizado pela Microsoft Store'],
+  ['Dados locais', 'SQLite (EF Core) em modo WAL, no perfil do usuário'],
+  ['Memória em segundo plano', 'Cerca de 7 a 15 MB com o app na bandeja'],
+];
+
+export const FAQ: FaqItem[] = [
+  {
+    q: 'O WingetEasy substitui o winget?',
+    a: 'Não. Ele é uma interface gráfica nativa sobre o winget: as atualizações continuam sendo feitas pelo gerenciador oficial da Microsoft, usando os mesmos manifestos e fontes.',
+  },
+  {
+    q: 'Por que .NET 10 e WinUI 3?',
+    a: 'WinUI 3 é o framework de interface mais recente da Microsoft para apps desktop, com controles Fluent, Mica e integração com o sistema. O .NET 10 com C# 14 traz desempenho e suporte de longo prazo.',
+  },
+  {
+    q: 'Preciso de privilégios de administrador?',
+    a: 'Não para usar o app. Quando algum pacote exige administrador, o WingetEasy junta todos esses pacotes e pede um único consentimento do UAC, num processo separado — o aplicativo principal nunca roda elevado.',
+  },
+  {
+    q: 'Consigo migrar meus apps para outro computador?',
+    a: 'Sim. Crie um snapshot na máquina de origem e restaure na de destino escolhendo os programas, exporte um script PowerShell (.ps1) ou transforme o snapshot num perfil reutilizável.',
+  },
+  {
+    q: 'O projeto é open source?',
+    a: 'O código-fonte está disponível no repositório do GitHub, onde você também pode acompanhar issues, releases e contribuir.',
+  },
+];
 
 @Component({
   selector: 'app-home',
@@ -43,12 +73,17 @@ import { ArchitectureTeaserComponent } from './components/architecture-teaser/ar
     LucideAngularModule,
     PixelNebulaComponent,
     PixelBandComponent,
+    PixelStarsComponent,
     CopyButtonComponent,
     SectionHeaderComponent,
+    AccordionComponent,
+    GithubIconComponent,
     HeroTransformComponent,
     FeatureShowcaseComponent,
     UpdatePipelineComponent,
-    ArchitectureTeaserComponent
+    ArchitectureTeaserComponent,
+    SiteCtaComponent,
+    SiteFooterComponent
   ],
   template: `
     <!-- ========================================== -->
@@ -183,10 +218,126 @@ import { ArchitectureTeaserComponent } from './components/architecture-teaser/ar
         </div>
       </div>
     </section>
+
+    <!-- ========================================== -->
+    <!-- 5. SEÇÃO INSTALAÇÃO (#instalacao / #instalar) -->
+    <!-- ========================================== -->
+    <section id="instalacao" class="relative scroll-mt-20 border-t border-border">
+      <!-- Campo de estrelas com estrelas cadentes periódicas -->
+      <app-pixel-stars class="pointer-events-none absolute inset-0 h-full w-full"></app-pixel-stars>
+
+      <div class="relative mx-auto max-w-[1200px] px-5 py-36 md:px-8 md:py-44">
+        <app-section-header
+          eyebrow="Instalação"
+          title="Instale e comece em minutos"
+          body="Baixe pela página de releases ou, assim que o pacote estiver no repositório oficial, direto pelo winget."
+        ></app-section-header>
+
+        <div id="instalar" class="mt-14 grid scroll-mt-24 gap-5 lg:grid-cols-2">
+          <!-- Terminal com comando Winget -->
+          <div class="overflow-hidden rounded-2xl border border-border bg-surface shadow-card">
+            <div class="flex items-center justify-between border-b border-border px-5 py-3">
+              <span class="font-mono text-[12px] text-subtle">PowerShell</span>
+              <app-copy-button
+                variant="ghost"
+                [value]="site.installCommand"
+              ></app-copy-button>
+            </div>
+            <pre class="overflow-x-auto px-5 py-5 font-mono text-[13.5px] leading-7"><code><span class="text-muted-foreground">PS&gt; </span><span class="text-foreground">winget install</span> <span class="text-code-string">WingetEasy</span>
+<span class="text-muted-foreground"># verificar sem abrir a janela</span>
+<span class="text-muted-foreground">PS&gt; </span><span class="text-foreground">WingetEasy.App.exe</span> <span class="text-code-flag">--check</span></code></pre>
+          </div>
+
+          <!-- Card de Releases Velopack -->
+          <div class="flex flex-col justify-between rounded-2xl border border-border bg-surface p-6 shadow-card">
+            <div>
+              <p class="font-mono text-[12px] text-subtle">Instalador</p>
+              <p class="mt-3 text-2xl font-semibold tracking-tight">GitHub Releases com Velopack</p>
+              <p class="mt-2 leading-relaxed text-subtle">
+                Baixe a versão mais recente com notas de versão. Depois de instalado, o WingetEasy se atualiza
+                sozinho em segundo plano com pacotes delta.
+              </p>
+            </div>
+            <div class="mt-6 flex flex-wrap gap-3">
+              <a
+                [href]="site.releasesUrl"
+                target="_blank"
+                rel="noreferrer"
+                class="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-primary px-5 text-base font-medium text-primary-foreground hover:bg-primary/85 transition-colors cursor-pointer select-none [&_svg]:size-[18px]"
+              >
+                <lucide-icon [img]="DownloadIcon" class="size-[18px]"></lucide-icon>
+                Ver releases
+              </a>
+              <a
+                [href]="site.githubUrl"
+                target="_blank"
+                rel="noreferrer"
+                class="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-input bg-surface/60 px-5 text-base font-medium text-foreground backdrop-blur hover:bg-surface-raised transition-colors cursor-pointer select-none [&_svg]:size-[18px]"
+              >
+                <app-github-icon class="size-[18px]"></app-github-icon>
+                Compilar do código
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bloco de compilação a partir do código-fonte -->
+        <div class="mt-5 overflow-hidden rounded-2xl border border-border bg-surface shadow-card">
+          <div class="border-b border-border px-5 py-3 font-mono text-[12px] text-subtle">
+            Compilar a partir do código-fonte
+          </div>
+          <pre class="overflow-x-auto px-5 py-5 font-mono text-[13.5px] leading-7"><code><span class="text-foreground">git clone</span> <span class="text-code-string">https://github.com/vivad/WingetEasy.git</span>
+<span class="text-foreground">cd</span> <span class="text-code-string">WingetEasy</span>
+<span class="text-foreground">dotnet build</span> <span class="text-code-flag">src/WingetEasy.App -c Release</span></code></pre>
+        </div>
+
+        <!-- Tabela de Requisitos de Sistema -->
+        <div id="requisitos" class="mt-16 scroll-mt-24">
+          <h3 class="text-2xl font-semibold tracking-tight">Requisitos de sistema</h3>
+          <dl class="mt-6 divide-y divide-border overflow-hidden rounded-2xl border border-border">
+            @for (r of requirements; track r[0]) {
+              <div class="grid gap-1 bg-background px-5 py-4 sm:grid-cols-[220px_1fr] sm:gap-6">
+                <dt class="font-mono text-[13px] text-muted-foreground">{{ r[0] }}</dt>
+                <dd class="text-subtle">{{ r[1] }}</dd>
+              </div>
+            }
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 6. SEÇÃO FAQ (#faq)                        -->
+    <!-- ========================================== -->
+    <section id="faq" class="relative scroll-mt-20 border-t border-border">
+      <!-- Pixel Nebula ancorada no canto inferior esquerdo -->
+      <app-pixel-nebula
+        anchor="bottom-left"
+        [seed]="31"
+        class="pointer-events-none absolute inset-0 h-full w-full opacity-40 md:opacity-70"
+      ></app-pixel-nebula>
+
+      <div class="relative mx-auto grid max-w-[1200px] gap-12 px-5 py-36 md:px-8 md:py-44 lg:grid-cols-[0.8fr_1.2fr]">
+        <app-section-header eyebrow="FAQ" title="Perguntas frequentes"></app-section-header>
+        <app-accordion [items]="faq"></app-accordion>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 7. SITE CTA COM PLANETA ESFÉRICO EM PIXELS -->
+    <!-- ========================================== -->
+    <app-site-cta></app-site-cta>
+
+    <!-- ========================================== -->
+    <!-- 8. RODAPÉ OFICIAL                          -->
+    <!-- ========================================== -->
+    <app-site-footer></app-site-footer>
   `
 })
 export class HomeComponent {
   readonly site = SITE;
   readonly DownloadIcon = Download;
   readonly ArrowUpRightIcon = ArrowUpRight;
+  readonly requirements = REQUIREMENTS;
+  readonly faq = FAQ;
 }
