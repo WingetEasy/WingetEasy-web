@@ -4,16 +4,17 @@
  * ==============================================================================
  * O que é:
  *   Componente da Landing Page principal (`/`), contendo o banner Hero do WingetEasy,
- *   a seção Recursos (FeatureShowcase) e demais seções.
+ *   a seção Recursos (FeatureShowcase) e a seção Como Funciona (UpdatePipeline).
  *
  * O que faz:
- *   - Apresenta o banner Hero com o fundo interativo de pixels e o HeroTransform.
- *   - Seção #recursos: Exibe o showcase interativo dos 6 módulos com rotação automática,
- *     com poeira de pixels ancorada à direita (`anchor="right"` e `seed={13}`).
+ *   - 1. Hero: Banner de impacto com a Pixel Nebula e a ilustração HeroTransform.
+ *   - 2. Recursos (#recursos): Showcase com os 6 módulos do app e rotação automática.
+ *   - 3. Como funciona (#como-funciona): Divisor com a PixelBand (fita de dados ondulante),
+ *        régua temporal de 6 etapas e live trace de console simulado.
  *
  * Como alterar caso queira:
- *   - Mudar os textos principais: Edite as tags `<h1>` e `<p>` no template abaixo.
- *   - Adicionar novas seções (Como funciona, Arquitetura, FAQ, etc.): Inclua novas tags `<section>`.
+ *   - Mudar textos ou descrições: Ajuste as tags `<app-section-header>` correspondentes.
+ *   - Ajustar sementes gráficas do Canvas: Mude o `seed` nos componentes `<app-pixel-nebula>` ou `<app-pixel-band>`.
  */
 
 import { Component } from '@angular/core';
@@ -22,10 +23,12 @@ import { RouterModule } from '@angular/router';
 import { LucideAngularModule, Download, ArrowUpRight } from 'lucide-angular';
 import { SITE } from '../../core/constants/site';
 import { PixelNebulaComponent } from '../../shared/canvas/pixel-nebula/pixel-nebula.component';
+import { PixelBandComponent } from '../../shared/canvas/pixel-band/pixel-band.component';
 import { CopyButtonComponent } from '../../shared/components/copy-button/copy-button.component';
 import { SectionHeaderComponent } from '../../shared/components/section-header/section-header.component';
 import { HeroTransformComponent } from './components/hero-transform/hero-transform.component';
 import { FeatureShowcaseComponent } from './components/feature-showcase/feature-showcase.component';
+import { UpdatePipelineComponent } from './components/update-pipeline/update-pipeline.component';
 
 @Component({
   selector: 'app-home',
@@ -35,10 +38,12 @@ import { FeatureShowcaseComponent } from './components/feature-showcase/feature-
     RouterModule,
     LucideAngularModule,
     PixelNebulaComponent,
+    PixelBandComponent,
     CopyButtonComponent,
     SectionHeaderComponent,
     HeroTransformComponent,
-    FeatureShowcaseComponent
+    FeatureShowcaseComponent,
+    UpdatePipelineComponent
   ],
   template: `
     <!-- ========================================== -->
@@ -126,6 +131,26 @@ import { FeatureShowcaseComponent } from './components/feature-showcase/feature-
 
         <div class="mt-20">
           <app-feature-showcase></app-feature-showcase>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 3. SEÇÃO COMO FUNCIONA (#como-funciona)    -->
+    <!-- ========================================== -->
+    <section id="como-funciona" class="relative scroll-mt-20 border-t border-border">
+      <!-- Fita ondulada de pixels dithered atuando como divisor animado -->
+      <app-pixel-band [seed]="3" class="pointer-events-none absolute inset-x-0 top-0 h-20 w-full"></app-pixel-band>
+
+      <div class="relative mx-auto max-w-[1200px] px-5 py-36 md:px-8 md:py-44">
+        <app-section-header
+          eyebrow="Como funciona"
+          title="Do clique ao histórico, em seis etapas"
+          body="O que acontece quando você aperta “Atualizar Selecionados”. Passe o mouse para pausar ou clique numa etapa."
+        ></app-section-header>
+
+        <div class="mt-16">
+          <app-update-pipeline></app-update-pipeline>
         </div>
       </div>
     </section>
