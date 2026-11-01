@@ -42,7 +42,7 @@ import { PixelStarsComponent } from '../../shared/canvas/pixel-stars/pixel-stars
 
       <div class="relative mx-auto flex max-w-[1200px] flex-col items-start gap-8 px-5 py-36 md:px-8 md:py-44">
         <!-- Logo WingetEasy -->
-        <img src="wingeteasy-logo.png" alt="Logo WingetEasy" width="88" height="57" class="h-14 w-auto" />
+        <img src="wingeteasy-logo.png" alt="Logo WingetEasy" width="88" height="57" class="h-18 w-auto object-contain" />
 
         <!-- Título de impacto -->
         <h2 class="max-w-2xl text-4xl font-semibold leading-[1.05] tracking-display md:text-5xl">
