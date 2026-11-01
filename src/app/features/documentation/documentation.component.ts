@@ -1,26 +1,15 @@
 /**
  * ==============================================================================
- * PÁGINA DE DOCUMENTAÇÃO (documentation.component.ts)
+ * PÁGINA DE DOCUMENTAÇÃO COM SOLUÇÃO DE PROBLEMAS (documentation.component.ts)
  * ==============================================================================
  * O que é:
  *   Página técnica completa com a documentação oficial do WingetEasy em rota própria (`/documentacao`).
  *
  * O que faz:
- *   - Utiliza o shell unificado `DocsLayoutComponent` com índice lateral TOC (13 seções).
- *   - Renderiza tabelas, grids de casos de uso (UC01 a UC10), blocos de código e diagramas Mermaid:
- *     1. Visão geral
- *     2. Telas do aplicativo (UpdatesPage, UpdateFlyout, HistoryPage, etc.)
- *     3. Casos de uso (UC01 a UC10)
- *     4. Fluxo de verificação de atualizações (Diagrama Mermaid)
- *     5. Fluxo de atualização em lote (Diagrama Mermaid)
- *     6. Fluxo de cancelamento em tempo real (Diagrama Mermaid)
- *     7. Fluxo de snapshot e exportação PowerShell (Diagrama Mermaid + Script .ps1)
- *     8. Fluxo de restauração granular (Diagrama Mermaid)
- *     9. Auto-cura de fontes do WinGet (Diagrama Mermaid)
- *     10. Modo headless CLI (Tabela de argumentos, exit codes e tarefa agendada)
- *     11. Catálogo de erros do winget traduzidos (HRESULTs)
- *     12. Configurações e efeito imediato
- *     13. Próximos passos e roadmap
+ *   - Utiliza o shell unificado `DocsLayoutComponent` com índice lateral TOC (14 seções).
+ *   - Inclui a nova seção dedicada "Solução de problemas" (#solucao-problemas) com os diagnósticos
+ *     cotidianos traduzidos para a experiência do usuário.
+ *   - Renderiza tabelas, grids de casos de uso (UC01 a UC10), blocos de código e diagramas Mermaid.
  */
 
 import { Component } from '@angular/core';
@@ -49,6 +38,7 @@ export const TOC: TocItem[] = [
   { id: 'fluxo-restauracao', label: 'Restauração granular', group: 'Fluxos' },
   { id: 'fluxo-autocura', label: 'Auto-cura de fontes', group: 'Fluxos' },
   { id: 'cli', label: 'Modo headless (CLI)', group: 'Referência' },
+  { id: 'solucao-problemas', label: 'Solução de problemas', group: 'Ajuda' },
   { id: 'erros', label: 'Códigos de erro', group: 'Referência' },
   { id: 'configuracoes', label: 'Configurações', group: 'Referência' },
   { id: 'roadmap', label: 'Próximos passos', group: 'Referência' },
@@ -58,7 +48,7 @@ export const STATS: StatItem[] = [
   { value: '10', label: 'casos de uso' },
   { value: '6', label: 'fluxos E2E' },
   { value: '5', label: 'argumentos CLI' },
-  { value: '6', label: 'erros traduzidos' },
+  { value: '7', label: 'problemas resolvidos' },
 ];
 
 export const USE_CASES = [
@@ -72,6 +62,39 @@ export const USE_CASES = [
   ['UC08', 'Execução agendada headless', 'Sistema / Administrador de TI', 'schtasks dispara --check ou --update-all sem janela, com auditoria no SQLite e toast.'],
   ['UC09', 'Auto-cura de repositórios', 'Usuário com falhas de catálogo', 'Na manutenção das Configurações, executa winget source reset --force e valida as fontes.'],
   ['UC10', 'Inicialização silenciosa', 'Sistema / Usuário', 'Inicia com o Windows via --minimized, só na bandeja, consumindo ~7–15 MB.'],
+];
+
+export const TROUBLESHOOTING = [
+  {
+    feeling: 'O winget avisa que o aplicativo está aberto e não consegue atualizar',
+    code: '0x8A150056 (-1978335146)',
+    solution: 'O WingetEasy detecta automaticamente aplicativos em execução (ex: Google Chrome, Visual Studio Code) na fase de pré-voo. Você pode clicar em “Fechar e atualizar” para encerrar o app graciosamente com salvamento de estado, ou escolher “Pular” para continuar os outros.'
+  },
+  {
+    feeling: 'O Windows pede confirmação de administrador (UAC) várias vezes seguidas',
+    code: '0x8A150014 (-1978335212)',
+    solution: 'No WingetEasy, o aplicativo principal roda sem privilégios. Se vários pacotes exigem elevação, ele os reúne e dispara um único prompt de consentimento UAC através do processo worker isolado (--elevated-update).'
+  },
+  {
+    feeling: 'Um programa atualiza com sucesso mas volta a aparecer na lista logo em seguida (Loop / Versão Unknown)',
+    code: 'Versão Unknown ou < 1.0',
+    solution: 'Alguns manifestos informam versões incorretas. O UpdateLoopDetector identifica quando um programa já foi atualizado nas últimas 24 horas para o mesmo identificador e o move automaticamente para a aba “Adiados”, impedindo notificações repetitivas.'
+  },
+  {
+    feeling: 'As buscas falham ou o winget trava dizendo que o catálogo está inacessível',
+    code: 'Source Timeout / Catálogo corrompido',
+    solution: 'Abra a aba Configurações e clique em “Auto-cura de fontes”. O WingetEasy executa winget source reset --force, restaura os repositórios oficiais da Microsoft e valida a integridade da conexão.'
+  },
+  {
+    feeling: 'Erro de assinatura ou hash divergente ao baixar o instalador',
+    code: '0x8A15002B (-1978335189)',
+    solution: 'O instalador fornecido pelo fabricante foi alterado antes do manifesto do winget ser atualizado pela comunidade. Aguarde algumas horas até que o repositório oficial aprove a nova hash, ou adie temporariamente o pacote.'
+  },
+  {
+    feeling: 'Aparece a mensagem de reinício pendente após a instalação',
+    code: '0x8A15004E (-1978335154)',
+    solution: 'O pacote foi instalado com êxito! O Windows apenas precisa que você reinicie a máquina para substituir bibliotecas DLL que estavam bloqueadas em memória. O WingetEasy trata isso como sucesso.'
+  }
 ];
 
 @Component({
@@ -283,11 +306,37 @@ export const USE_CASES = [
       </app-doc-section>
 
       <!-- ========================================== -->
-      <!-- 11. CÓDIGOS DE ERRO                       -->
+      <!-- 11. SOLUÇÃO DE PROBLEMAS (DIAGNÓSTICO REAL) -->
+      <!-- ========================================== -->
+      <app-doc-section
+        id="solucao-problemas"
+        index="11"
+        title="Solução de problemas comuns"
+        lead="Como resolver na prática os entraves mais frequentes que você encontra durante o uso do winget."
+      >
+        <div class="grid gap-4">
+          @for (p of troubleshooting; track p.code) {
+            <div class="rounded-2xl border border-border bg-surface p-6 shadow-card hover:border-input transition-colors">
+              <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-border/60 pb-3">
+                <h3 class="text-base font-semibold text-foreground">{{ p.feeling }}</h3>
+                <span class="font-mono text-xs text-brand-cyan bg-brand-cyan/10 border border-brand-cyan/20 rounded-md px-2 py-0.5">
+                  {{ p.code }}
+                </span>
+              </div>
+              <p class="mt-3 text-sm leading-relaxed text-subtle">
+                {{ p.solution }}
+              </p>
+            </div>
+          }
+        </div>
+      </app-doc-section>
+
+      <!-- ========================================== -->
+      <!-- 12. CÓDIGOS DE ERRO                       -->
       <!-- ========================================== -->
       <app-doc-section
         id="erros"
-        index="11"
+        index="12"
         title="Códigos de erro do winget"
         lead="O WingetErrorTranslator converte HRESULTs em mensagens em português e decide a próxima ação."
       >
@@ -306,11 +355,11 @@ export const USE_CASES = [
       </app-doc-section>
 
       <!-- ========================================== -->
-      <!-- 12. CONFIGURAÇÕES                         -->
+      <!-- 13. CONFIGURAÇÕES                         -->
       <!-- ========================================== -->
       <app-doc-section
         id="configuracoes"
-        index="12"
+        index="13"
         title="Configurações e efeito imediato"
         lead="Cada toggle é gravado atomicamente no SettingsRepository e lido pelo serviço que depende dele."
       >
@@ -329,11 +378,11 @@ export const USE_CASES = [
       </app-doc-section>
 
       <!-- ========================================== -->
-      <!-- 13. PRÓXIMOS PASSOS (ROADMAP)             -->
+      <!-- 14. PRÓXIMOS PASSOS (ROADMAP)             -->
       <!-- ========================================== -->
       <app-doc-section
         id="roadmap"
-        index="13"
+        index="14"
         title="Próximos passos"
         lead="Milestone 6 — distribuição."
       >
@@ -360,5 +409,5 @@ export class DocumentationComponent {
   readonly stats = STATS;
   readonly diagrams = DIAGRAMS;
   readonly useCases = USE_CASES;
+  readonly troubleshooting = TROUBLESHOOTING;
 }
-

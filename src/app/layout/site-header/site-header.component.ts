@@ -1,32 +1,27 @@
 /**
  * ==============================================================================
- * HEADER / NAVBAR DO SITE (site-header.component.ts)
+ * HEADER / NAVBAR DO SITE COM BUSCA INTELIGENTE (site-header.component.ts)
  * ==============================================================================
  * O que é:
- *   Barra de navegação superior fixa com efeito translúcido (backdrop-blur)
- *   e borda sutil, contendo logotipo, links, atalho de busca e botão de download.
+ *   Barra superior fixa com atalho global de busca Ctrl + K.
  *
  * O que faz:
- *   - Fixa o menu no topo (`sticky top-0 z-40`).
- *   - Exibe links do menu importados de `NAV`.
- *   - Suporta busca rápida:
- *     * Atalho global `Ctrl + K` (ou `Cmd + K` no Mac) abre o modal de pesquisa.
- *     * Tecla `ESC` ou clique fecha o modal.
- *   - Link para o repositório GitHub oficial.
- *   - Botão pílula "Baixar" com âncora direta para a seção de instalação.
- *
- * Como alterar caso queira:
- *   - Alterar altura do header: Mude `h-16` na linha 40 para `h-14` ou `h-20`.
- *   - Alterar transparência do fundo: Ajuste `bg-background/80` (ex: `bg-background/95`).
- *   - Alterar links do menu: Edite o arquivo `src/app/core/constants/site.ts`.
- *   - Adicionar novos atalhos no modal de busca: Adicione opções dentro do bloco `@if (openSearch())`.
+ *   - Abre o modal de busca ao teclar Ctrl+K ou clicar no campo de busca.
+ *   - Pesquisa em tempo real por:
+ *     * Códigos de erro ("0x8A150056", "0x8A150014")
+ *     * Problemas do dia a dia ("Chrome aberto", "pede admin", "loop", "fontes corrompidas")
+ *     * Capítulos técnicos de Arquitetura e Documentação
+ *     * Seções da Página Inicial
+ *   - Exibe a categoria do resultado, título, badge e uma prévia explicativa da solução.
+ *   - Navega diretamente para a seção correspondente ao clicar ou teclar Enter.
  */
 
-import { Component, HostListener, signal, inject } from '@angular/core';
+import { Component, HostListener, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { LucideAngularModule, Search } from 'lucide-angular';
+import { LucideAngularModule, Search, AlertCircle, BookOpen, Layers, Compass, ArrowRight, CornerDownLeft } from 'lucide-angular';
 import { SITE, NAV, NavItem } from '../../core/constants/site';
+import { SEARCH_INDEX, SearchResultItem } from '../../core/constants/search-index';
 import { GithubIconComponent } from '../../shared/components/button/github-icon.component';
 
 @Component({
@@ -38,7 +33,7 @@ import { GithubIconComponent } from '../../shared/components/button/github-icon.
       <div class="mx-auto flex h-16 max-w-[1440px] items-center gap-8 px-5 md:px-6">
         <!-- Logotipo e Nome do Projeto -->
         <a routerLink="/" class="flex shrink-0 items-center gap-2.5">
-          <img src="wingeteasy-logo.png" alt="WingetEasy" width="38" height="28" class="h-[28px] w-auto" />
+          <img src="wingeteasy-logo.png" alt="WingetEasy" width="28" height="18" class="h-[22px] w-auto" />
           <span class="text-[15px] font-semibold tracking-tight">{{ site.name }}</span>
         </a>
 
@@ -46,7 +41,6 @@ import { GithubIconComponent } from '../../shared/components/button/github-icon.
         <nav class="hidden items-center gap-6 text-[15px] text-subtle md:flex">
           @for (item of nav; track item.label) {
             @if (isHashItem(item)) {
-              <!-- Links para seções na página inicial via âncora (#) -->
               <a
                 [routerLink]="['/']"
                 [fragment]="item.hash"
@@ -55,7 +49,6 @@ import { GithubIconComponent } from '../../shared/components/button/github-icon.
                 {{ item.label }}
               </a>
             } @else {
-              <!-- Links para páginas dedicadas (/arquitetura, /documentacao) -->
               <a
                 [routerLink]="[item.to]"
                 routerLinkActive="text-foreground"
@@ -72,8 +65,8 @@ import { GithubIconComponent } from '../../shared/components/button/github-icon.
           <!-- Botão de busca estilo comando rápido (Desktop) -->
           <button
             type="button"
-            (click)="openSearch.set(true)"
-            class="hidden h-9 w-52 items-center gap-2 rounded-full border border-border bg-surface px-3 text-sm text-muted-foreground transition-colors hover:border-input hover:text-subtle xl:flex cursor-pointer"
+            (click)="openSearchModal()"
+            class="hidden h-9 w-60 items-center gap-2 rounded-full border border-border bg-surface px-3 text-sm text-muted-foreground transition-colors hover:border-input hover:text-subtle xl:flex cursor-pointer"
           >
             <lucide-icon [img]="SearchIcon" class="size-4"></lucide-icon>
             <span>Buscar</span>
@@ -85,7 +78,7 @@ import { GithubIconComponent } from '../../shared/components/button/github-icon.
           <!-- Ícone de busca compacto (Mobile) -->
           <button
             type="button"
-            (click)="openSearch.set(true)"
+            (click)="openSearchModal()"
             class="flex xl:hidden h-9 w-9 items-center justify-center rounded-full text-subtle hover:bg-accent hover:text-accent-foreground cursor-pointer"
             aria-label="Buscar"
           >
@@ -115,39 +108,118 @@ import { GithubIconComponent } from '../../shared/components/button/github-icon.
       </div>
     </header>
 
-    <!-- Modal Dialog de Busca Global (aberto via clique ou atalho Ctrl+K) -->
+    <!-- Modal Dialog de Busca Global Inteligente (aberto via Ctrl+K ou clique) -->
     @if (openSearch()) {
-      <div class="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/60 backdrop-blur-sm p-4">
-        <div class="relative w-full max-w-lg rounded-xl border border-border bg-surface shadow-2xl overflow-hidden">
-          <div class="flex items-center gap-2 border-b border-border px-3 py-2.5">
-            <lucide-icon [img]="SearchIcon" class="size-4 text-muted-foreground"></lucide-icon>
+      <div
+        class="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 bg-black/70 backdrop-blur-sm p-4 animate-fade"
+        (click)="closeOnBackdrop($event)"
+      >
+        <div
+          class="relative w-full max-w-2xl rounded-2xl border border-border bg-surface shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+          (click)="$event.stopPropagation()"
+        >
+          <!-- Campo de Busca -->
+          <div class="flex items-center gap-3 border-b border-border px-4 py-3.5 bg-background/50">
+            <lucide-icon [img]="SearchIcon" class="size-5 text-brand-cyan shrink-0"></lucide-icon>
             <input
+              #searchInput
               type="text"
-              placeholder="Digite um comando ou seção..."
+              [value]="searchQuery()"
+              (input)="searchQuery.set($any($event.target).value)"
+              placeholder="Digite um erro (ex: 0x8A150056, app aberto, admin, loop, fontes) ou assunto..."
               class="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
               autofocus
             />
             <button
               (click)="openSearch.set(false)"
-              class="rounded px-1.5 py-0.5 text-xs text-subtle hover:bg-surface-raised cursor-pointer"
+              class="rounded-md border border-border bg-surface-raised px-2 py-1 text-xs font-mono text-subtle hover:text-foreground cursor-pointer"
             >
               ESC
             </button>
           </div>
-          <div class="p-2 text-xs text-subtle">
-            <p class="px-2 py-1.5 text-muted-foreground font-mono">Navegação rápida</p>
-            @for (item of nav; track item.label) {
+
+          <!-- Sugestões Rápidas de Pesquisa quando o campo está vazio -->
+          @if (!searchQuery().trim()) {
+            <div class="p-3 border-b border-border/60 bg-surface/40 flex flex-wrap items-center gap-2 text-xs">
+              <span class="text-muted-foreground font-mono">Pesquisas frequentes:</span>
               <button
                 type="button"
-                (click)="navigate(item)"
-                class="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-foreground hover:bg-surface-raised transition-colors cursor-pointer"
+                (click)="searchQuery.set('0x8A150056')"
+                class="rounded-full border border-border bg-surface px-2.5 py-1 text-subtle hover:border-brand-cyan hover:text-brand-cyan transition-colors cursor-pointer"
               >
-                <span>{{ item.label }}</span>
-                <span class="ml-auto font-mono text-[11px] text-muted-foreground">
-                  {{ isHashItem(item) ? '#' + item.hash : item.to }}
-                </span>
+                0x8A150056 (App aberto)
               </button>
+              <button
+                type="button"
+                (click)="searchQuery.set('UAC admin')"
+                class="rounded-full border border-border bg-surface px-2.5 py-1 text-subtle hover:border-brand-cyan hover:text-brand-cyan transition-colors cursor-pointer"
+              >
+                Pede Admin (UAC)
+              </button>
+              <button
+                type="button"
+                (click)="searchQuery.set('loop')"
+                class="rounded-full border border-border bg-surface px-2.5 py-1 text-subtle hover:border-brand-cyan hover:text-brand-cyan transition-colors cursor-pointer"
+              >
+                Versão em Loop
+              </button>
+              <button
+                type="button"
+                (click)="searchQuery.set('fontes')"
+                class="rounded-full border border-border bg-surface px-2.5 py-1 text-subtle hover:border-brand-cyan hover:text-brand-cyan transition-colors cursor-pointer"
+              >
+                Fontes Corrompidas
+              </button>
+            </div>
+          }
+
+          <!-- Lista de Resultados da Busca -->
+          <div class="overflow-y-auto p-2 divide-y divide-border/40 flex-1">
+            @if (filteredResults().length === 0) {
+              <div class="py-12 text-center text-muted-foreground">
+                <p class="text-sm">Nenhum resultado encontrado para "{{ searchQuery() }}".</p>
+                <p class="text-xs mt-1 text-subtle">Dica: Tente pesquisar por código hexadecimal ("0x..."), "admin", "memoria" ou "backup".</p>
+              </div>
+            } @else {
+              @for (item of filteredResults(); track item.id; let i = $index) {
+                <div
+                  (click)="selectResult(item)"
+                  class="group flex flex-col gap-1 p-3 rounded-xl hover:bg-surface-raised transition-colors cursor-pointer text-left"
+                >
+                  <div class="flex items-center gap-2">
+                    <!-- Ícone por categoria -->
+                    @if (item.category === 'problemas') {
+                      <lucide-icon [img]="AlertIcon" class="size-4 text-spark shrink-0"></lucide-icon>
+                    } @else if (item.category === 'documentacao') {
+                      <lucide-icon [img]="BookIcon" class="size-4 text-brand-cyan shrink-0"></lucide-icon>
+                    } @else if (item.category === 'arquitetura') {
+                      <lucide-icon [img]="LayersIcon" class="size-4 text-brand-violet shrink-0"></lucide-icon>
+                    } @else {
+                      <lucide-icon [img]="CompassIcon" class="size-4 text-subtle shrink-0"></lucide-icon>
+                    }
+
+                    <span class="text-sm font-medium text-foreground group-hover:text-brand-cyan transition-colors">
+                      {{ item.title }}
+                    </span>
+
+                    <span class="ml-auto font-mono text-[11px] rounded px-1.5 py-0.5 border border-border bg-surface text-muted-foreground">
+                      {{ item.categoryLabel }}
+                    </span>
+                  </div>
+
+                  <!-- Prévia da Solução / Descrição -->
+                  <p class="text-xs text-subtle pl-6 leading-relaxed line-clamp-2">
+                    {{ item.preview }}
+                  </p>
+                </div>
+              }
             }
+          </div>
+
+          <!-- Rodapé do Modal -->
+          <div class="px-4 py-2.5 border-t border-border bg-background/50 flex items-center justify-between text-xs text-muted-foreground font-mono">
+            <span>{{ filteredResults().length }} resultado(s) disponível(is)</span>
+            <span class="hidden sm:inline">Pressione Enter ou clique para abrir</span>
           </div>
         </div>
       </div>
@@ -157,40 +229,67 @@ import { GithubIconComponent } from '../../shared/components/button/github-icon.
 export class SiteHeaderComponent {
   readonly site = SITE;
   readonly nav = NAV;
-  readonly SearchIcon = Search;
+  readonly searchIndex = SEARCH_INDEX;
 
-  // Estado que controla se a caixa de diálogo de busca está visível
+  readonly SearchIcon = Search;
+  readonly AlertIcon = AlertCircle;
+  readonly BookIcon = BookOpen;
+  readonly LayersIcon = Layers;
+  readonly CompassIcon = Compass;
+  readonly ArrowRightIcon = ArrowRight;
+  readonly EnterIcon = CornerDownLeft;
+
   openSearch = signal<boolean>(false);
+  searchQuery = signal<string>('');
+
   private router = inject(Router);
 
-  // Helper TypeScript de verificação de tipo para itens com âncora hash (#)
   isHashItem(item: NavItem): item is { label: string; to: '/'; hash: string } {
     return 'hash' in item;
   }
 
-  /**
-   * Listener global de teclado para detectar o atalho Ctrl+K (ou Cmd+K) e ESC
-   */
+  openSearchModal() {
+    this.searchQuery.set('');
+    this.openSearch.set(true);
+  }
+
+  closeOnBackdrop(e: MouseEvent) {
+    this.openSearch.set(false);
+  }
+
+  // Filtro reativo computed que pesquisa no título, preview e lista de palavras-chave
+  filteredResults = computed(() => {
+    const q = this.searchQuery().trim().toLowerCase();
+    if (!q) {
+      // Exibe os problemas em destaque e as seções principais inicialmente
+      return this.searchIndex.slice(0, 8);
+    }
+
+    return this.searchIndex.filter(item => {
+      const matchTitle = item.title.toLowerCase().includes(q);
+      const matchPreview = item.preview.toLowerCase().includes(q);
+      const matchKeywords = item.keywords.some(k => k.toLowerCase().includes(q));
+      return matchTitle || matchPreview || matchKeywords;
+    });
+  });
+
   @HostListener('window:keydown', ['$event'])
   handleKeyDown(e: KeyboardEvent) {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault();
-      this.openSearch.update(v => !v);
+      this.openSearchModal();
     }
     if (e.key === 'Escape' && this.openSearch()) {
       this.openSearch.set(false);
     }
   }
 
-  /**
-   * Realiza a navegação após o usuário clicar em um item dentro da busca
-   */
-  navigate(item: NavItem) {
+  selectResult(item: SearchResultItem) {
     this.openSearch.set(false);
-    if (this.isHashItem(item)) {
-      this.router.navigate(['/'], { fragment: item.hash });
+    if (item.hash) {
+      this.router.navigate([item.url], { fragment: item.hash });
     } else {
-      this.router.navigate([item.to]);
+      this.router.navigate([item.url]);
     }
   }
 }

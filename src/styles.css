@@ -158,7 +158,7 @@
 }
 
 @utility animate-fade {
-  animation: fade 1.6s ease-out both;
+  animation: fade 0.2s ease-out both;
 }
 
 @utility animate-travel {
