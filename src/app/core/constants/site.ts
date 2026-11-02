@@ -21,7 +21,7 @@ export const SITE = {
   name: 'WingetEasy',
   githubUrl: 'https://github.com/WingetEasy/WingetEasy',
   releasesUrl: 'https://github.com/WingetEasy/WingetEasy/releases',
-  installCommand: 'winget install WingetEasy',
+  installCommand: 'winget install --id WingetEasy.WingetEasy',
 } as const;
 
 // Define se o item de menu leva a uma âncora (#) na home ou a uma rota dedicada
