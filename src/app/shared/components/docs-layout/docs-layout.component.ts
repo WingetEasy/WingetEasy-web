@@ -17,6 +17,7 @@
 
 import { Component, input, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { LucideAngularModule, ChevronDown, ListFilter } from 'lucide-angular';
 import { PixelNebulaComponent } from '../../canvas/pixel-nebula/pixel-nebula.component';
 import { PixelBandComponent } from '../../canvas/pixel-band/pixel-band.component';
@@ -31,6 +32,7 @@ export type StatItem = { value: string; label: string };
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     LucideAngularModule,
     PixelNebulaComponent,
     PixelBandComponent,
@@ -103,9 +105,10 @@ export type StatItem = { value: string; label: string };
                 @for (t of toc(); track t.id) {
                   <li>
                     <a
-                      [href]="'#' + t.id"
-                      (click)="mobileTocOpen.set(false)"
-                      class="block rounded-lg px-3 py-2 text-sm transition-colors"
+                      [routerLink]="[]"
+                      [fragment]="t.id"
+                      (click)="scrollToSection(t.id); mobileTocOpen.set(false)"
+                      class="block rounded-lg px-3 py-2 text-sm transition-colors cursor-pointer"
                       [class.bg-surface-raised]="activeId() === t.id"
                       [class.text-brand-cyan]="activeId() === t.id"
                       [class.font-semibold]="activeId() === t.id"
@@ -136,8 +139,10 @@ export type StatItem = { value: string; label: string };
                       </p>
                     }
                     <a
-                      [href]="'#' + t.id"
-                      class="-ml-px block border-l py-1.5 pl-4 transition-colors"
+                      [routerLink]="[]"
+                      [fragment]="t.id"
+                      (click)="scrollToSection(t.id)"
+                      class="-ml-px block border-l py-1.5 pl-4 transition-colors cursor-pointer"
                       [class.border-brand-cyan]="activeId() === t.id"
                       [class.text-foreground]="activeId() === t.id"
                       [class.border-transparent]="activeId() !== t.id"
@@ -214,6 +219,16 @@ export class DocsLayoutComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.observer) {
       this.observer.disconnect();
+    }
+  }
+
+  scrollToSection(id: string) {
+    this.activeId.set(id);
+    if (typeof document !== 'undefined') {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
   }
 
