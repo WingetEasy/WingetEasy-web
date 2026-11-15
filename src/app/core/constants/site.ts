@@ -21,6 +21,7 @@ export const SITE = {
   name: 'WingetEasy',
   githubUrl: 'https://github.com/WingetEasy/WingetEasy',
   releasesUrl: 'https://github.com/WingetEasy/WingetEasy/releases',
+  downloadUrl: 'https://github.com/WingetEasy/WingetEasy/releases/latest/download/WingetEasy-win-Setup.exe',
   installCommand: 'winget install --id WingetEasy.WingetEasy',
 } as const;
 

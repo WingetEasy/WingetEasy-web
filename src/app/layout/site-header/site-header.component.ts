@@ -112,8 +112,7 @@ import { GithubIconComponent } from '../../shared/components/button/github-icon.
 
           <!-- Botão de destaque "Baixar" (Desktop e Tablets) -->
           <a
-            routerLink="/"
-            fragment="instalar"
+            [href]="site.downloadUrl"
             class="hidden sm:inline-flex h-9 items-center justify-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85 transition-colors cursor-pointer"
           >
             Baixar
@@ -163,8 +162,7 @@ import { GithubIconComponent } from '../../shared/components/button/github-icon.
 
             <div class="pt-4 border-t border-border flex flex-col gap-2.5">
               <a
-                routerLink="/"
-                fragment="instalar"
+                [href]="site.downloadUrl"
                 (click)="closeMobileMenu()"
                 class="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/85 transition-colors"
               >

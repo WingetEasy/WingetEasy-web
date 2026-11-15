@@ -54,8 +54,7 @@ import { PixelStarsComponent } from '../../shared/canvas/pixel-stars/pixel-stars
         <!-- Ações -->
         <div class="flex flex-col sm:flex-row flex-wrap gap-3 w-full sm:w-auto">
           <a
-            routerLink="/"
-            fragment="instalar"
+            [href]="site.downloadUrl"
             class="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm sm:text-base font-medium text-primary-foreground hover:bg-primary/85 transition-colors cursor-pointer select-none [&_svg]:size-[18px] w-full sm:w-auto"
           >
             <lucide-icon [img]="DownloadIcon" class="size-[18px]"></lucide-icon>
